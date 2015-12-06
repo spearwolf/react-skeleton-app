@@ -2,15 +2,15 @@
 
 gulp, es2015, babel, react, redux, ..
 
-### install
+### I. install
 
 `npm install`
 
-### develop
+### II. develop
 
 `gulp`
 
-### serve
+### III. serve
 
 `gulp serve`
 

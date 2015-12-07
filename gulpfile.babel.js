@@ -12,11 +12,12 @@ const buildDir = 'build';
 const servePort = 1975;
 
 bundleTasks('bundle', srcDir, bundleJs, buildDir, standalone, packageJson.babel);
-htmlTask('html', srcDir + '/' + indexHtml, buildDir, Object.assign({ bundleJs: bundleJs }, packageJson));
+htmlTask('html', srcDir + '/' + indexHtml, buildDir, Object.assign({ bundleJs: bundleJs, standalone: standalone }, packageJson));
 serveTask('serve', servePort, buildDir);
 
 gulp.task('favicon', () => {
     gulp.src('src/favicon.ico', { base: 'src' }).pipe(gulp.dest('build'));
 });
 
+gulp.task('build', ['html', 'favicon', 'bundle']);
 gulp.task('default', ['html', 'favicon', 'bundle:watch']);

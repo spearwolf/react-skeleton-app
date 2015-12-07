@@ -13,4 +13,7 @@ class App extends React.Component {     //eslint-disable-line no-unused-vars
 
 }
 
-render(<App/>, document.getElementById('app'));
+export function run (elemId) {
+    render(<App/>, document.getElementById(elemId));
+}
+

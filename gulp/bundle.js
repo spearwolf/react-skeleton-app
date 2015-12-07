@@ -8,12 +8,13 @@ const sourcemaps = require('gulp-sourcemaps');
 const uglify = require('gulp-uglify');
 const gutil = require('gulp-util');
 const watchify = require('watchify');
+const exit = require('gulp-exit');
 
 module.exports = function (taskName, srcDir, bundleJs, buildDir, standalone, babelConfig, logNamespace) {
 
     if (!logNamespace) logNamespace = bundleJs;
 
-    gulp.task(taskName, () => bundle(build()));
+    gulp.task(taskName, () => bundle(build()).pipe(exit()));
 
     gulp.task(taskName + ':watch', () => {
 

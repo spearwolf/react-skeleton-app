@@ -29,6 +29,5 @@ other sub tasks are ..
 - `gulp bundle:watch`
 - `gulp clean`
 
----
 
-have fun!
+have fun :smiley:

@@ -16,6 +16,19 @@ module.exports = function (taskName, srcDir, bundleJs, buildDir, standalone, bab
 
     gulp.task(taskName, () => bundle(build()).pipe(exit()));
 
+    gulp.task(taskName + ':release', () => bundle(build({
+            debug: false
+        }), {
+            writeSourcemaps: false,
+            uglify: {
+                compress: {
+                    global_defs: {
+                        DEBUG: false
+                    }
+                }
+            }
+        }).pipe(exit()));
+
     gulp.task(taskName + ':watch', () => {
 
         let b = build();
@@ -24,14 +37,14 @@ module.exports = function (taskName, srcDir, bundleJs, buildDir, standalone, bab
 
     });
 
-    function build () {
+    function build (options) {
 
-        var b = watchify(browserify({
+        var b = watchify(browserify(Object.assign({
             entries: srcDir + '/' + bundleJs,
             debug: true,
             bundleExternal: true,
             standalone: standalone,
-        }))
+        }, options||{})));
 
         b.transform('babelify', Object.assign({ sourceMapRelative: '.' }, babelConfig));
 
@@ -41,18 +54,37 @@ module.exports = function (taskName, srcDir, bundleJs, buildDir, standalone, bab
 
     }
 
-    function bundle ( b ) {
+    function bundle ( b, options ) {
 
-        return b.bundle()
+        if (options === undefined) {
+            options = {
+                writeSourcemaps: true,
+                uglify: {
+                    compress: {
+                        global_defs: {
+                            DEBUG: true
+                        }
+                    }
+                }
+            };
+        }
+
+        b = b.bundle()
             .on('error', log_error('Browserify'))
             .pipe(source(bundleJs))
-            .pipe(buffer())
-            .pipe(sourcemaps.init({ loadMaps: true }))
-            .pipe(uglify())
-            .on('error', log_error('Sourcemaps'))
-            .pipe(sourcemaps.write('./'))
-            .pipe(gulp.dest(buildDir))
-            ;
+            .pipe(buffer());
+
+        if (options.writeSourcemaps) {
+            b = b.pipe(sourcemaps.init({ loadMaps: true }));
+        }
+
+        b = b.pipe(uglify(options.uglify));
+
+        if (options.writeSourcemaps) {
+            b = b.on('error', log_error('Sourcemaps')).pipe(sourcemaps.write('./'));
+        }
+
+        return b.pipe(gulp.dest(buildDir));
 
     }
 

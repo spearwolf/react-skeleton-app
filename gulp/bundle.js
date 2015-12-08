@@ -9,15 +9,26 @@ const uglify = require('gulp-uglify');
 const gutil = require('gulp-util');
 const watchify = require('watchify');
 const exit = require('gulp-exit');
+const cssModulesify = require('css-modulesify');
+const postcssModulesLocalByDefault = require('postcss-modules-local-by-default');
+const postcssModulesExtractImports = require('postcss-modules-extract-imports');
+const postCssModulesScope = require('postcss-modules-scope');
+const precss = require('precss');
+const autoprefixer = require('autoprefixer');
 
-module.exports = function (taskName, srcDir, bundleJs, buildDir, standalone, babelConfig, logNamespace) {
+module.exports = function (taskName, srcDir, bundleJs, bundleCss, buildDir, standalone, babelConfig, logNamespace) {
 
     if (!logNamespace) logNamespace = bundleJs;
 
     gulp.task(taskName, () => bundle(build()).pipe(exit()));
 
     gulp.task(taskName + ':release', () => bundle(build({
-            debug: false
+            browserify: {
+                debug: false
+            },
+            cssModulesify: {
+                generateScopedName: cssModulesify.generateShortName
+            }
         }), {
             writeSourcemaps: false,
             uglify: {
@@ -32,23 +43,40 @@ module.exports = function (taskName, srcDir, bundleJs, buildDir, standalone, bab
     gulp.task(taskName + ':watch', () => {
 
         let b = build();
-        b.on('update', bundle.bind(global, b));
+        b.on('update', bundle.bind(global, b, null));
         bundle(b);
 
     });
 
     function build (options) {
 
+        if (options === undefined) options = {};
+        let browserifyOptions = options.browserify || {};
+        let cssModulesifyOptions = options.cssModulesify || {};
+
         var b = watchify(browserify(Object.assign({
             entries: srcDir + '/' + bundleJs,
             debug: true,
             bundleExternal: true,
             standalone: standalone,
-        }, options||{})));
+            cache: {},
+            packageCache: {},
+        }, browserifyOptions)));
+
+        b.on('log', gutil.log.bind(gutil, '[' + gutil.colors.cyan(logNamespace) + ']'));
 
         b.transform('babelify', Object.assign({ sourceMapRelative: '.' }, babelConfig));
 
-        b.on('log', gutil.log.bind(gutil, '[' + gutil.colors.cyan(logNamespace) + ']'));
+        b.plugin(cssModulesify, Object.assign({
+            output: buildDir + '/' + bundleCss,
+            use: [
+                postcssModulesLocalByDefault,
+                postcssModulesExtractImports,
+                postCssModulesScope,
+                precss,
+                autoprefixer
+            ]
+        }, cssModulesifyOptions));
 
         return b;
 
@@ -56,7 +84,7 @@ module.exports = function (taskName, srcDir, bundleJs, buildDir, standalone, bab
 
     function bundle ( b, options ) {
 
-        if (options === undefined) {
+        if (options == null) {
             options = {
                 writeSourcemaps: true,
                 uglify: {
@@ -70,9 +98,9 @@ module.exports = function (taskName, srcDir, bundleJs, buildDir, standalone, bab
         }
 
         b = b.bundle()
-            .on('error', log_error('Browserify'))
-            .pipe(source(bundleJs))
-            .pipe(buffer());
+                .on('error', log_error('Browserify'))
+                .pipe(source(bundleJs))
+                .pipe(buffer());
 
         if (options.writeSourcemaps) {
             b = b.pipe(sourcemaps.init({ loadMaps: true }));
@@ -92,7 +120,6 @@ module.exports = function (taskName, srcDir, bundleJs, buildDir, standalone, bab
         let log = gutil.log.bind(gutil, '[' + gutil.colors.cyan(logNamespace) + ']', gutil.colors.red(prefix));
         return function ( err ) {
             log(gutil.colors.red(err.toString()));
-            //gutil.log(JSON.stringify(err, null, 2));
         };
     }
 

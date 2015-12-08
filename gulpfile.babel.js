@@ -6,14 +6,15 @@ const packageJson = require('./package.json');
 const del = require('del');
 
 const srcDir = 'src';
-const bundleJs = 'app.js';
+const bundleJs = 'index.js';
+const bundleCss = 'app.css';
 const indexHtml = 'index.html';
 const standalone = 'App';
 const buildDir = 'build';
 const servePort = 1975;
 
-bundleTasks('bundle', srcDir, bundleJs, buildDir, standalone, packageJson.babel);
-htmlTask('html', srcDir + '/' + indexHtml, buildDir, Object.assign({ bundleJs: bundleJs, standalone: standalone }, packageJson));
+bundleTasks('bundle', srcDir, bundleJs, bundleCss, buildDir, standalone, packageJson.babel);
+htmlTask('html', srcDir + '/' + indexHtml, buildDir, Object.assign({ bundleJs: bundleJs, bundleCss: bundleCss, standalone: standalone }, packageJson));
 serveTask('serve', servePort, buildDir);
 
 gulp.task('clean', () => del(['build/**/*']));

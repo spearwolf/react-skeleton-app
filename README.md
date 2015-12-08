@@ -1,7 +1,7 @@
 ## react-skeleton-app
 #### minimal version
 
-Includes **gulp**, **babel** (_es2015_, _stage-1_, _runtime_, _react_), **browserify** (_commonjs_-style require), **react** .. and more!
+Includes **gulp**, **babel** (_es2015_, _stage-1_, _runtime_, _react_), **browserify** (_commonjs_-style require), **react**, **postcss** and **css-modules** (_precss_, _autoprefixer_) .. and more!
 
 All build artifacts goes into `./build/` directory.
 

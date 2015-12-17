@@ -32,6 +32,7 @@ module.exports = function (taskName, srcDir, bundleJs, bundleCss, buildDir, stan
         }), {
             writeSourcemaps: false,
             uglify: {
+                preserveComments: 'license',
                 compress: {
                     global_defs: {
                         DEBUG: false
@@ -88,8 +89,28 @@ module.exports = function (taskName, srcDir, bundleJs, bundleCss, buildDir, stan
             options = {
                 writeSourcemaps: true,
                 uglify: {
+                    mangle: false,
+                    preserveComments: 'all',
                     compress: {
-                        global_defs: {
+                        sequences     : false, // true,  // join consecutive statemets with the “comma operator”
+                        properties    : false, // true,  // optimize property access: a["foo"] → a.foo
+                        dead_code     : false, // true,  // discard unreachable code
+                        drop_debugger : false, // true,  // discard “debugger” statements
+                        unsafe        : false, // some unsafe optimizations (see below)
+                        conditionals  : false, // true,  // optimize if-s and conditional expressions
+                        comparisons   : false, // true,  // optimize comparisons
+                        evaluate      : false, // true,  // evaluate constant expressions
+                        booleans      : false, // true,  // optimize boolean expressions
+                        loops         : false, // true,  // optimize loops
+                        unused        : false, // true,  // drop unused variables/functions
+                        hoist_funs    : false, // true,  // hoist function declarations
+                        hoist_vars    : false, // hoist variable declarations
+                        if_return     : false, // true,  // optimize if-s followed by return/continue
+                        join_vars     : false, // true,  // join var declarations
+                        cascade       : false, // true,  // try to cascade `right` into `left` in sequences
+                        side_effects  : false, // true,  // drop side-effect-free statements
+                        warnings      : true,  // warn about potentially dangerous optimizations/code
+                        global_defs: {         // global definitions
                             DEBUG: true
                         }
                     }
@@ -103,7 +124,11 @@ module.exports = function (taskName, srcDir, bundleJs, bundleCss, buildDir, stan
                 .pipe(buffer());
 
         if (options.writeSourcemaps) {
-            b = b.pipe(sourcemaps.init({ loadMaps: true }));
+            b = b.pipe(sourcemaps.init({
+                loadMaps: false,
+                debug: true,
+                addComment: true,
+            }));
         }
 
         b = b.pipe(uglify(options.uglify));
